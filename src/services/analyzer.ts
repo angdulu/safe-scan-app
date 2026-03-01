@@ -38,7 +38,7 @@ export async function analyzeProduct(
   }
 
   const response = await ai.models.generateContent({
-    model: "gemini-3-flash-preview",
+    model: "gemini-flash-lite-latest",
     contents: { parts },
     config: {
       responseMimeType: "application/json",
@@ -101,7 +101,7 @@ export async function askFollowUpQuestion(
 `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
+    model: "gemini-flash-lite-latest",
     contents: promptText,
   });
 
