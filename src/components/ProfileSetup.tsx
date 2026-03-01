@@ -78,7 +78,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
           맞춤형 성분 분석을 위해 필요해요.
         </p>
 
-        <div className="flex flex-wrap gap-3 mb-6">
+        <div className="flex flex-wrap justify-center gap-4 mb-8">
           {allDisplayConditions.map((condition) => {
             const isSelected = selected.includes(condition);
             return (
