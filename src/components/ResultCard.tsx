@@ -140,6 +140,18 @@ export function ResultCard({ profile, result, onReset }: ResultCardProps) {
         <RefreshCw size={20} />
         다른 제품 스캔하기
       </button>
+
+      <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 mt-2">
+        <h4 className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">
+          <AlertTriangle size={14} />
+          필수 법적 고지 사항
+        </h4>
+        <ul className="text-[11px] text-gray-500 space-y-1.5 list-disc pl-4 leading-relaxed">
+          <li>본 서비스는 Gemini AI 모델을 기반으로 하며, 사진 판독 오류나 최신 정보 미반영으로 인해 결과가 100% 정확하지 않을 수 있습니다.</li>
+          <li>분석 결과는 참고용일 뿐 전문의의 진단이나 의학적 조언을 대체할 수 없습니다. 질환이 있는 경우 반드시 전문가와 상의하십시오.</li>
+          <li>사용자가 업로드한 사진은 AI 분석을 위해 구글 서버(API)로 전송되며, 이는 개인정보 보호법에 따른 제3자 제공에 해당합니다.</li>
+        </ul>
+      </div>
     </motion.div>
   );
 }
