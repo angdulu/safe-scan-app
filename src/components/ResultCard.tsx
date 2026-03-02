@@ -101,7 +101,7 @@ export function ResultCard({ profile, result, onReset }: ResultCardProps) {
         <form onSubmit={handleAsk} className="relative flex items-center">
           <input
             type="text"
-            placeholder="예: 하루에 얼마나 먹어도 되나요?"
+            placeholder="예: 하루 권장량은? 임산부가 써도 되나요?"
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={isAsking}

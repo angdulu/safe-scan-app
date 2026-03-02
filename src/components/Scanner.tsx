@@ -56,9 +56,9 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
         <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
           <Camera size={40} strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">제품 촬영하기</h2>
-        <p className="text-gray-500 text-lg px-4 font-medium">
-          성분표나 제품 전면을 찍어주세요.
+        <h2 className="text-2xl font-bold text-gray-900">사진으로 분석하기</h2>
+        <p className="text-gray-500 text-base px-4 font-medium leading-relaxed">
+          식품 성분표, 영양제, 화장품, 생활용품 등<br/>분석이 필요한 것을 찍어주세요.
         </p>
 
         <div className="flex gap-4 mt-4 w-full px-4">
@@ -88,7 +88,7 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
       <form onSubmit={handleTextSubmit} className="relative">
         <input
           type="text"
-          placeholder="제품명 직접 입력 (예: 신라면)"
+          placeholder="제품명 직접 입력 (예: 신라면, 타이레놀, 핸드크림)"
           value={textInput}
           onChange={(e) => setTextInput(e.target.value)}
           className="w-full bg-white border border-gray-200 rounded-2xl py-4.5 pl-5 pr-14 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
