@@ -9,10 +9,23 @@ export default function App() {
   const [profile, setProfile] = useState<UserProfile | null>(null);
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [previewUrl, setPreviewUrl] = useState<string | null>(null);
 
   if (!profile) {
     return <ProfileSetup onComplete={setProfile} />;
   }
+
+  const handleResult = (res: AnalysisResult) => {
+    setResult(res);
+    setIsLoading(false);
+    setPreviewUrl(null);
+  };
+
+  const handleLoading = (loading: boolean, url?: string) => {
+    setIsLoading(loading);
+    if (url) setPreviewUrl(url);
+    if (!loading && !result) setPreviewUrl(null);
+  };
 
   return (
     <div className="min-h-screen bg-[#f2f4f6] text-gray-900 font-sans pb-24">
@@ -25,11 +38,11 @@ export default function App() {
       
       <main className="px-6 max-w-md mx-auto">
         {isLoading ? (
-          <LoadingSpinner />
+          <LoadingSpinner imageUrl={previewUrl} />
         ) : result ? (
           <ResultCard profile={profile} result={result} onReset={() => setResult(null)} />
         ) : (
-          <Scanner profile={profile} onResult={setResult} onLoading={setIsLoading} />
+          <Scanner profile={profile} onResult={handleResult} onLoading={handleLoading} />
         )}
       </main>
     </div>

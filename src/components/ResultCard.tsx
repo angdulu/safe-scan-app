@@ -10,10 +10,22 @@ interface ResultCardProps {
   onReset: () => void;
 }
 
+interface Message {
+  role: "user" | "ai";
+  content: string;
+}
+
 export function ResultCard({ profile, result, onReset }: ResultCardProps) {
   const [question, setQuestion] = useState("");
   const [isAsking, setIsAsking] = useState(false);
-  const [answer, setAnswer] = useState<string | null>(null);
+  const [messages, setMessages] = useState<Message[]>([]);
+  const chatRef = React.useRef<HTMLDivElement>(null);
+
+  React.useEffect(() => {
+    if (chatRef.current) {
+      chatRef.current.scrollTop = chatRef.current.scrollHeight;
+    }
+  }, [messages, isAsking]);
 
   const isSafe = result.level === "SAFE";
   const isCaution = result.level === "CAUTION";
@@ -35,13 +47,20 @@ export function ResultCard({ profile, result, onReset }: ResultCardProps) {
 
   const handleAsk = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!question.trim() || isAsking) return;
+    const currentQuestion = question.trim();
+    if (!currentQuestion || isAsking) return;
 
     setIsAsking(true);
+    setQuestion("");
+    
+    // Add user message immediately
+    const newUserMessage: Message = { role: "user", content: currentQuestion };
+    setMessages(prev => [...prev, newUserMessage]);
+
     try {
-      const response = await askFollowUpQuestion(profile, result, question);
-      setAnswer(response);
-      setQuestion("");
+      const response = await askFollowUpQuestion(profile, result, currentQuestion, messages);
+      const newAiMessage: Message = { role: "ai", content: response };
+      setMessages(prev => [...prev, newAiMessage]);
     } catch (error) {
       console.error(error);
       alert("질문에 답변하는 중 오류가 발생했습니다.");
@@ -88,15 +107,39 @@ export function ResultCard({ profile, result, onReset }: ResultCardProps) {
           AI에게 추가 질문하기
         </h3>
         
-        {answer && (
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-blue-50 p-5 rounded-2xl mb-4 text-gray-800 leading-relaxed"
-          >
-            {answer}
-          </motion.div>
-        )}
+        <div 
+          ref={chatRef}
+          className="flex flex-col gap-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
+        >
+          {messages.length === 0 ? (
+            <p className="text-gray-400 text-sm text-center py-4">궁금한 점을 물어보세요!</p>
+          ) : (
+            messages.map((msg, idx) => (
+              <motion.div
+                key={idx}
+                initial={{ opacity: 0, x: msg.role === "user" ? 20 : -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}
+              >
+                <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
+                  msg.role === "user" 
+                    ? "bg-blue-500 text-white rounded-tr-none" 
+                    : "bg-gray-100 text-gray-800 rounded-tl-none"
+                }`}>
+                  {msg.content}
+                </div>
+              </motion.div>
+            ))
+          )}
+          {isAsking && (
+            <div className="flex justify-start">
+              <div className="bg-gray-100 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-gray-400" />
+                <span className="text-xs text-gray-400 font-medium tracking-tight">답변을 생각 중...</span>
+              </div>
+            </div>
+          )}
+        </div>
 
         <form onSubmit={handleAsk} className="relative flex items-center">
           <input
@@ -112,15 +155,15 @@ export function ResultCard({ profile, result, onReset }: ResultCardProps) {
             disabled={!question.trim() || isAsking}
             className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
           >
-            {isAsking ? <Loader2 size={24} className="animate-spin" /> : <Send size={24} />}
+            <Send size={24} />
           </button>
         </form>
       </div>
 
       {result.ingredients.length > 0 && (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-          <h3 className="text-lg font-bold text-gray-900 mb-4">주요 성분</h3>
-          <div className="flex flex-wrap gap-2">
+        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center">
+          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">주요 성분</h3>
+          <div className="flex flex-wrap justify-center gap-2">
             {result.ingredients.map((ingredient, idx) => (
               <span
                 key={idx}

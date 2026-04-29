@@ -7,27 +7,52 @@ import { motion } from "motion/react";
 interface ScannerProps {
   profile: UserProfile;
   onResult: (result: AnalysisResult) => void;
-  onLoading: (isLoading: boolean) => void;
+  onLoading: (isLoading: boolean, previewUrl?: string) => void;
 }
 
 export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
   const [textInput, setTextInput] = useState("");
+  const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const processFile = async (file: File) => {
+    if (!file.type.startsWith("image/")) {
+      alert("이미지 파일만 업로드 가능합니다.");
+      return;
+    }
 
-    onLoading(true);
+    const previewUrl = URL.createObjectURL(file);
+    onLoading(true, previewUrl);
     try {
       const result = await analyzeProduct(profile, file);
       onResult(result);
     } catch (error) {
       console.error(error);
       alert("분석 중 오류가 발생했습니다.");
-    } finally {
       onLoading(false);
     }
+  };
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processFile(file);
+  };
+
+  const handleDragOver = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(true);
+  };
+
+  const handleDragLeave = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+  };
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault();
+    setIsDragging(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processFile(file);
   };
 
   const handleTextSubmit = async (e: React.FormEvent) => {
@@ -52,8 +77,17 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col gap-6"
     >
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center justify-center text-center gap-4 py-12">
-        <div className="w-20 h-20 bg-blue-50 text-blue-500 rounded-full flex items-center justify-center mb-2">
+      <div 
+        onDragOver={handleDragOver}
+        onDragLeave={handleDragLeave}
+        onDrop={handleDrop}
+        className={`bg-white p-6 rounded-3xl shadow-sm border-2 transition-all flex flex-col items-center justify-center text-center gap-4 py-12 ${
+          isDragging ? "border-blue-500 bg-blue-50/50 scale-[1.02]" : "border-gray-100"
+        }`}
+      >
+        <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-2 transition-colors ${
+          isDragging ? "bg-blue-100 text-blue-600" : "bg-blue-50 text-blue-500"
+        }`}>
           <Camera size={40} strokeWidth={1.5} />
         </div>
         <h2 className="text-2xl font-bold text-gray-900">사진으로 분석하기</h2>
@@ -85,21 +119,28 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
-      <form onSubmit={handleTextSubmit} className="relative">
-        <input
-          type="text"
-          placeholder="제품명 직접 입력 (예: 신라면, 타이레놀, 핸드크림)"
-          value={textInput}
-          onChange={(e) => setTextInput(e.target.value)}
-          className="w-full bg-white border border-gray-200 rounded-2xl py-4.5 pl-5 pr-14 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
-        />
-        <button
-          type="submit"
-          className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
-        >
-          <Search size={24} />
-        </button>
-      </form>
+      <div className="space-y-4">
+        <h2 className="text-xl font-bold text-gray-900 px-2">텍스트로 분석하기</h2>
+        <form onSubmit={handleTextSubmit} className="relative">
+          <input
+            type="text"
+            placeholder="제품명 직접 입력 (예: 신라면, 타이레놀, 핸드크림)"
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            className="w-full bg-white border border-gray-200 rounded-2xl py-4.5 pl-5 pr-14 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+          >
+            <Search size={24} />
+          </button>
+        </form>
+      </div>
+
+      <p className="text-gray-400 text-[10px] text-center mt-4">
+        입력하신 정보와 사진은 분석 용도로만 사용되며 외부로 유출되지 않습니다.
+      </p>
     </motion.div>
   );
 }

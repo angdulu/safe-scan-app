@@ -118,10 +118,21 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
       <button
         onClick={handleComplete}
         disabled={selected.length === 0}
-        className="w-full bg-blue-500 text-white py-4.5 rounded-2xl text-lg font-bold disabled:bg-gray-100 disabled:text-gray-400 transition-all active:scale-[0.98] mt-8"
+        className="w-full bg-blue-500 text-white py-4.5 rounded-2xl text-lg font-bold disabled:bg-gray-100 disabled:text-gray-400 transition-all active:scale-[0.98] mt-8 mb-4"
       >
         시작하기
       </button>
+      <div className="space-y-1.5 pb-4">
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
+          귀하의 개인정보와 분석 데이터는 외부에 공유되지 않으며 안전하게 보호됩니다.
+        </p>
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
+          '시작하기'를 누르면 <span className="underline">서비스 이용약관</span> 및 <span className="underline">개인정보 취급방침</span>에 동의하는 것으로 간주합니다.
+        </p>
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
+          본 서비스는 AI 분석 결과이며, 전문적인 의학적 진단이나 처방을 대신할 수 없습니다. 위급 상황 시에는 반드시 의료기관을 방문하십시오.
+        </p>
+      </div>
     </motion.div>
   );
 }
