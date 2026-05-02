@@ -1,6 +1,8 @@
 import { GoogleGenAI, Type } from "@google/genai";
 import { AnalysisResult, UserProfile } from "../types";
 
+import { Language } from "../translations";
+
 const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
 
 // 이미지를 서버로 보내기 전, 아주 빠르게 크기를 줄여서 전송 속도를 극대화합니다.
@@ -46,16 +48,18 @@ async function fastResize(file: File): Promise<string> {
 export async function analyzeProduct(
   profile: UserProfile,
   imageFile?: File,
-  productText?: string
+  productText?: string,
+  language: Language = 'ko'
 ): Promise<AnalysisResult> {
   const parts: any[] = [];
+  const langText = language === 'ko' ? 'Korean' : 'English';
 
   const promptText = `
 당신은 세계 최고의 보건/의학 전문 AI입니다.
 사용자의 건강 상태는 다음과 같습니다: [${profile.conditions.join(", ")}].
 
 사용자가 입력한 대상(식품, 의약품, 화장품, 생활용품 등)의 성분이나 특성을 분석하고, 이 사용자에게 얼마나 위험한지 평가해주세요.
-결과는 반드시 JSON 형식으로 반환해야 합니다.
+결과는 반드시 JSON 형식으로 반환해야 합니다. 모든 텍스트 값(요약, 상세 이유 등)은 반드시 **${langText}**로 작성하세요.
 
 - level: 'SAFE' (안전), 'CAUTION' (주의), 'DANGER' (위험) 중 하나
 - summary: 핵심 주의사항을 1~2줄로 요약 (사용자의 건강을 최우선으로 고려)
@@ -104,7 +108,7 @@ export async function analyzeProduct(
   try {
     return JSON.parse(response.text || "{}") as AnalysisResult;
   } catch (e) {
-    throw new Error("분석 실패");
+    throw new Error(language === 'ko' ? "분석 실패" : "Analysis failed");
   }
 }
 
@@ -112,10 +116,12 @@ export async function askFollowUpQuestion(
   profile: UserProfile,
   result: AnalysisResult,
   question: string,
+  language: Language = 'ko',
   history: { role: string; content: string }[] = []
 ): Promise<string> {
+  const langText = language === 'ko' ? 'Korean' : 'English';
   const historyText = history
-    .map((m) => `${m.role === "user" ? "질문" : "답변"}: ${m.content}`)
+    .map((m) => `${m.role === "user" ? (language === 'ko' ? "질문" : "Question") : (language === 'ko' ? "답변" : "Answer")}: ${m.content}`)
     .join("\n");
 
   const prompt = `
@@ -128,7 +134,7 @@ ${historyText}
 
 새 질문: ${question}
 
-위 정보를 바탕으로 3문장 내외로 친절하게 답변해주세요. 
+위 정보를 바탕으로 3문장 내외로 친절하게 **${langText}**로 답변해주세요. 
 전문적인 정보나 수치 언급 시 식약처, 세계보건기구(WHO) 등 공신력 있는 출처를 함께 제시하여 신뢰도를 높여주세요.
 `;
 
@@ -136,7 +142,7 @@ ${historyText}
     model: "gemini-flash-lite-latest",
     contents: prompt,
   });
-  return response.text || "답변 실패";
+  return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
 }
 
 function fileToBase64(file: File): Promise<string> {

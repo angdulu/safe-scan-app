@@ -1,11 +1,15 @@
 import { Loader2 } from "lucide-react";
 import { motion } from "motion/react";
+import { Language, translations } from "../translations";
 
 interface LoadingSpinnerProps {
   imageUrl?: string | null;
+  language: Language;
 }
 
-export function LoadingSpinner({ imageUrl }: LoadingSpinnerProps) {
+export function LoadingSpinner({ imageUrl, language }: LoadingSpinnerProps) {
+  const t = translations[language];
+
   return (
     <div className="flex flex-col items-center justify-center py-8 px-6 text-center">
       {imageUrl ? (
@@ -61,10 +65,10 @@ export function LoadingSpinner({ imageUrl }: LoadingSpinnerProps) {
       
       <div className="space-y-2">
         <h2 className="text-xl font-bold text-gray-900">
-          {imageUrl ? "이미지를 정밀 분석 중" : "성분을 분석하고 있어요"}
+          {imageUrl ? t.loading_camera : t.loading_text}
         </h2>
         <p className="text-gray-400 text-base font-medium animate-pulse">
-          잠시만 기다려주세요...
+          {t.loading_desc}
         </p>
       </div>
     </div>

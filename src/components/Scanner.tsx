@@ -1,34 +1,37 @@
 import React, { useState, useRef } from "react";
-import { Camera, Search, Image as ImageIcon } from "lucide-react";
+import { Camera, Search } from "lucide-react";
 import { UserProfile, AnalysisResult } from "../types";
 import { analyzeProduct } from "../services/analyzer";
 import { motion } from "motion/react";
+import { Language, translations } from "../translations";
 
 interface ScannerProps {
   profile: UserProfile;
   onResult: (result: AnalysisResult) => void;
   onLoading: (isLoading: boolean, previewUrl?: string) => void;
+  language: Language;
 }
 
-export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
+export function Scanner({ profile, onResult, onLoading, language }: ScannerProps) {
   const [textInput, setTextInput] = useState("");
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const t = translations[language];
 
   const processFile = async (file: File) => {
     if (!file.type.startsWith("image/")) {
-      alert("이미지 파일만 업로드 가능합니다.");
+      alert(language === 'ko' ? "이미지 파일만 업로드 가능합니다." : "Only image files can be uploaded.");
       return;
     }
 
     const previewUrl = URL.createObjectURL(file);
     onLoading(true, previewUrl);
     try {
-      const result = await analyzeProduct(profile, file);
+      const result = await analyzeProduct(profile, file, undefined, language);
       onResult(result);
     } catch (error) {
       console.error(error);
-      alert("분석 중 오류가 발생했습니다.");
+      alert(language === 'ko' ? "분석 중 오류가 발생했습니다." : "An error occurred during analysis.");
       onLoading(false);
     }
   };
@@ -61,11 +64,11 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
 
     onLoading(true);
     try {
-      const result = await analyzeProduct(profile, undefined, textInput);
+      const result = await analyzeProduct(profile, undefined, textInput, language);
       onResult(result);
     } catch (error) {
       console.error(error);
-      alert("분석 중 오류가 발생했습니다.");
+      alert(language === 'ko' ? "분석 중 오류가 발생했습니다." : "An error occurred during analysis.");
     } finally {
       onLoading(false);
     }
@@ -90,9 +93,9 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
         }`}>
           <Camera size={40} strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">사진으로 분석하기</h2>
+        <h2 className="text-2xl font-bold text-gray-900">{t.scanner_title_camera}</h2>
         <p className="text-gray-500 text-base px-4 font-medium leading-relaxed">
-          식품 성분표, 영양제, 화장품, 생활용품 등<br/>분석이 필요한 것을 찍어주세요.
+          {t.scanner_desc_camera}
         </p>
 
         <div className="flex gap-4 mt-4 w-full px-4">
@@ -101,7 +104,7 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
             className="flex-1 bg-blue-500 text-white py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-all active:scale-[0.98] shadow-md shadow-blue-500/20"
           >
             <Camera size={24} />
-            촬영/앨범
+            {t.scanner_btn_camera}
           </button>
           <input
             type="file"
@@ -115,16 +118,16 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
 
       <div className="flex items-center gap-4 px-2">
         <div className="h-px bg-gray-200 flex-1"></div>
-        <span className="text-gray-400 font-medium text-sm">또는</span>
+        <span className="text-gray-400 font-medium text-sm">{t.scanner_divider}</span>
         <div className="h-px bg-gray-200 flex-1"></div>
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-gray-900 px-2">텍스트로 분석하기</h2>
+        <h2 className="text-xl font-bold text-gray-900 px-2">{t.scanner_title_text}</h2>
         <form onSubmit={handleTextSubmit} className="relative">
           <input
             type="text"
-            placeholder="제품명 직접 입력 (예: 신라면, 타이레놀, 핸드크림)"
+            placeholder={t.scanner_placeholder_text}
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             className="w-full bg-white border border-gray-200 rounded-2xl py-4.5 pl-5 pr-14 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
@@ -139,7 +142,7 @@ export function Scanner({ profile, onResult, onLoading }: ScannerProps) {
       </div>
 
       <p className="text-gray-400 text-[10px] text-center mt-4">
-        입력하신 정보와 사진은 분석 용도로만 사용되며 외부로 유출되지 않습니다.
+        {t.scanner_privacy}
       </p>
     </motion.div>
   );

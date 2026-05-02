@@ -2,35 +2,31 @@ import React, { useState } from "react";
 import { UserProfile } from "../types";
 import { motion } from "motion/react";
 import { Plus } from "lucide-react";
+import { Language, translations, PREDEFINED_CONDITIONS } from "../translations";
 
 interface ProfileSetupProps {
   onComplete: (profile: UserProfile) => void;
+  language: Language;
 }
 
-const CONDITIONS = [
-  "당뇨",
-  "고혈압",
-  "임산부",
-  "호흡기 질환",
-  "견과류 알레르기",
-  "유제품 알레르기",
-  "갑상선 질환",
-  "위장 장애",
-  "특별한 질환 없음",
-];
-
-export function ProfileSetup({ onComplete }: ProfileSetupProps) {
+export function ProfileSetup({ onComplete, language }: ProfileSetupProps) {
   const [selected, setSelected] = useState<string[]>([]);
   const [customCondition, setCustomCondition] = useState("");
+  const t = translations[language];
+
+  // Map predefined keys to their translated labels for display
+  const getLabel = (key: string) => {
+    return t.conditions[key as keyof typeof t.conditions] || key;
+  };
 
   const toggleCondition = (condition: string) => {
-    if (condition === "특별한 질환 없음") {
-      setSelected(["특별한 질환 없음"]);
+    if (condition === "No Conditions") {
+      setSelected(["No Conditions"]);
       return;
     }
 
     setSelected((prev) => {
-      const newSelected = prev.filter((c) => c !== "특별한 질환 없음");
+      const newSelected = prev.filter((c) => c !== "No Conditions");
       if (newSelected.includes(condition)) {
         return newSelected.filter((c) => c !== condition);
       } else {
@@ -52,17 +48,23 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
 
   const handleComplete = () => {
     if (selected.length === 0) {
-      alert("최소 하나의 상태를 선택해주세요.");
+      alert(t.alert_min_one);
       return;
     }
-    onComplete({ conditions: selected });
+    // We store the keys or labels in the conditions list. 
+    // For translation consistency, maybe we should store labels? 
+    // The user said "don't change the text for Korean just additional one for English".
+    // I'll store the labels so they show up correctly in the header too.
+    onComplete({ 
+      conditions: selected.map(s => getLabel(s)) 
+    });
   };
 
-  // Combine predefined conditions and any custom ones that are currently selected
-  const allDisplayConditions = [...CONDITIONS];
+  const allDisplayConditions = [...PREDEFINED_CONDITIONS];
   selected.forEach(c => {
     if (!allDisplayConditions.includes(c)) {
-      allDisplayConditions.splice(allDisplayConditions.length - 1, 0, c); // Insert before "특별한 질환 없음"
+      const noCondIndex = allDisplayConditions.indexOf("No Conditions");
+      allDisplayConditions.splice(noCondIndex, 0, c);
     }
   });
 
@@ -72,15 +74,18 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
       animate={{ opacity: 1, y: 0 }}
       className="min-h-screen bg-white text-gray-900 px-6 py-12 flex flex-col max-w-md mx-auto"
     >
-      <div className="flex-1">
-        <h1 className="text-3xl font-extrabold mb-3 tracking-tight">건강 상태를<br />알려주세요</h1>
+      <div className="flex-1 pt-8">
+        <h1 className="text-3xl font-extrabold mb-3 tracking-tight whitespace-pre-line">
+          {t.profile_title}
+        </h1>
         <p className="text-gray-500 mb-10 text-lg font-medium">
-          맞춤형 성분 분석을 위해 필요해요.
+          {t.profile_desc}
         </p>
 
         <div className="flex flex-wrap justify-center gap-4 mb-8">
           {allDisplayConditions.map((condition) => {
             const isSelected = selected.includes(condition);
+            const label = getLabel(condition);
             return (
               <button
                 key={condition}
@@ -91,7 +96,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
                     : "bg-white border-gray-200 text-gray-700 hover:bg-gray-50"
                 }`}
               >
-                {condition}
+                {label}
               </button>
             );
           })}
@@ -100,7 +105,7 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
         <form onSubmit={handleAddCustom} className="relative flex items-center">
           <input
             type="text"
-            placeholder="기타 질환 직접 입력"
+            placeholder={t.placeholder_custom}
             value={customCondition}
             onChange={(e) => setCustomCondition(e.target.value)}
             className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-5 pr-14 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all focus:bg-white"
@@ -118,19 +123,20 @@ export function ProfileSetup({ onComplete }: ProfileSetupProps) {
       <button
         onClick={handleComplete}
         disabled={selected.length === 0}
-        className="w-full bg-blue-500 text-white py-4.5 rounded-2xl text-lg font-bold disabled:bg-gray-100 disabled:text-gray-400 transition-all active:scale-[0.98] mt-8 mb-4"
+        className="w-full bg-blue-500 text-white py-4.5 rounded-2xl text-lg font-bold disabled:bg-gray-100 disabled:text-gray-400 transition-all active:scale-[0.98] mt-8 mb-4 shadow-lg shadow-blue-500/25"
       >
-        시작하기
+        {t.start_btn}
       </button>
-      <div className="space-y-1.5 pb-4">
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-          귀하의 개인정보와 분석 데이터는 외부에 공유되지 않으며 안전하게 보호됩니다.
+      <div className="space-y-3 pb-6 mt-4 opacity-80">
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed px-4">
+          {t.privacy_info}
         </p>
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-          '시작하기'를 누르면 <span className="underline">서비스 이용약관</span> 및 <span className="underline">개인정보 취급방침</span>에 동의하는 것으로 간주합니다.
+        <div className="h-px bg-gray-100 w-12 mx-auto"></div>
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed px-4">
+          {t.terms_info}
         </p>
-        <p className="text-[10px] text-gray-400 text-center leading-relaxed">
-          본 서비스는 AI 분석 결과이며, 전문적인 의학적 진단이나 처방을 대신할 수 없습니다. 위급 상황 시에는 반드시 의료기관을 방문하십시오.
+        <p className="text-[10px] text-gray-400 text-center leading-relaxed px-4 italic">
+          {t.medical_disclaimer}
         </p>
       </div>
     </motion.div>
