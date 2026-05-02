@@ -29,7 +29,9 @@ export const translations = {
     result_chat_title: 'AI에게 추가 질문하기',
     result_chat_empty: '궁금한 점을 물어보세요!',
     result_chat_thinking: '답변을 생각 중...',
-    result_chat_placeholder: '궁금한 성분이 있나요?',
+    result_chat_placeholder: '질문을 입력해주세요...',
+    result_chat_suggestion1: '정확한 근거는 무엇인가요?',
+    result_chat_suggestion2: '성분에 대해 궁금한 점이 있어요.',
     result_reset_btn: '다시 스캔하기',
     conditions: {
       'Diabetes': '당뇨',
@@ -71,7 +73,9 @@ export const translations = {
     result_chat_title: 'Ask AI Follow-up Questions',
     result_chat_empty: 'Ask anything you are curious about!',
     result_chat_thinking: 'Thinking of an answer...',
-    result_chat_placeholder: 'Have questions about ingredients?',
+    result_chat_placeholder: 'Type your message...',
+    result_chat_suggestion1: 'What is the specific source?',
+    result_chat_suggestion2: 'Have questions about ingredients?',
     result_reset_btn: 'Scan Again',
     conditions: {
       'Diabetes': 'Diabetes',

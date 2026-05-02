@@ -150,6 +150,27 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
           )}
         </div>
 
+        <div className="flex flex-wrap gap-2 mb-4 px-1">
+          <button
+            type="button"
+            onClick={() => {
+              setQuestion(t.result_chat_suggestion1);
+            }}
+            className="text-[11px] bg-gray-50 text-gray-600 px-3 py-2 rounded-xl border border-gray-100 font-semibold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all active:scale-95"
+          >
+            {t.result_chat_suggestion1}
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              setQuestion(t.result_chat_suggestion2);
+            }}
+            className="text-[11px] bg-gray-50 text-gray-600 px-3 py-2 rounded-xl border border-gray-100 font-semibold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all active:scale-95"
+          >
+            {t.result_chat_suggestion2}
+          </button>
+        </div>
+
         <form onSubmit={handleAsk} className="relative flex items-center">
           <input
             type="text"
