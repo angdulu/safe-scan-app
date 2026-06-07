@@ -1,5 +1,6 @@
 interface Env {
   GEMINI_API_KEY: string;
+  GEMINI_API_MODEL?: string;
 }
 
 export const onRequestPost: PagesFunction<Env> = async (context) => {
@@ -50,8 +51,9 @@ ${historyText}
       ]
     };
 
+    const model = context.env.GEMINI_API_MODEL || "gemini-3.1-flash-lite";
     const response = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-3.1-flash-lite:generateContent?key=${apiKey}`,
+      `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
       {
         method: "POST",
         headers: {

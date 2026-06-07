@@ -7,6 +7,9 @@ import { PRODUCTS, INGREDIENT_HAZARDS, CONDITION_MAP } from "./localDb";
 const apiKey = (typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : "") || "";
 const ai = new GoogleGenAI({ apiKey });
 
+const DEFAULT_MODEL = "gemini-3.1-flash-lite";
+const apiModel = (typeof process !== "undefined" ? process.env?.GEMINI_API_MODEL : "") || DEFAULT_MODEL;
+
 // 이미지를 서버로 보내기 전, 아주 빠르게 크기를 줄여서 전송 속도를 극대화합니다.
 async function fastResize(file: File): Promise<string> {
   return new Promise((resolve, reject) => {
@@ -221,7 +224,7 @@ export async function analyzeProduct(
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite",
+      model: apiModel,
       contents: { parts },
       config: {
         responseMimeType: "application/json",
@@ -297,7 +300,7 @@ ${historyText}
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.1-flash-lite",
+      model: apiModel,
       contents: prompt,
     });
     return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
