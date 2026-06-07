@@ -41,16 +41,16 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
   };
 
   const bgColor = isSafe
-    ? "bg-green-50"
+    ? "bg-[#eef9f2] border-[#d2ecd9]"
     : isCaution
-    ? "bg-orange-50"
-    : "bg-red-50";
+    ? "bg-[#fff5ec] border-[#ffe4cc]"
+    : "bg-[#fdf3f4] border-[#fcd3d5]";
 
   const textColor = isSafe
-    ? "text-green-600"
+    ? "text-[#2b8f56]"
     : isCaution
-    ? "text-orange-600"
-    : "text-red-600";
+    ? "text-[#e07300]"
+    : "text-[#e54249]";
 
   const Icon = isSafe ? CheckCircle : isCaution ? AlertTriangle : XCircle;
 
@@ -84,7 +84,7 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
       animate={{ opacity: 1, scale: 1 }}
       className="flex flex-col gap-6"
     >
-      <div className={`p-8 rounded-3xl ${bgColor} flex flex-col items-center text-center shadow-sm relative overflow-hidden`}>
+      <div className={`p-8 rounded-[2rem] border ${bgColor} flex flex-col items-center text-center shadow-sm relative overflow-hidden`}>
         <motion.div 
           initial={{ scale: 0 }}
           animate={{ scale: 1 }}
@@ -98,21 +98,21 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
           {getStatusText()}
         </h2>
         
-        <p className="text-xl font-medium text-gray-800 leading-relaxed mb-6 px-4">
+        <p className="text-xl font-semibold text-[#191f28] leading-relaxed mb-6 px-4">
           {result.summary}
         </p>
         
-        <div className="w-full bg-white/60 rounded-2xl p-6 text-left shadow-sm backdrop-blur-sm">
-          <h3 className="text-sm font-bold text-gray-500 uppercase tracking-wider mb-2">{t.result_details_label}</h3>
-          <p className="text-gray-700 leading-relaxed text-lg">
+        <div className="w-full bg-white/80 border border-black/5 rounded-2xl p-6 text-left shadow-sm backdrop-blur-sm">
+          <h3 className="text-sm font-bold text-[#8b95a1] uppercase tracking-wider mb-2">{t.result_details_label}</h3>
+          <p className="text-[#191f28] leading-relaxed text-base font-medium">
             {result.details}
           </p>
         </div>
       </div>
 
-      <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100">
-        <h3 className="text-lg font-bold text-gray-900 mb-4 flex items-center gap-2">
-          <MessageCircle size={20} className="text-blue-500" />
+      <div className="bg-white p-6 rounded-[2rem] border border-[#e5e8eb] shadow-sm">
+        <h3 className="text-lg font-bold text-[#191f28] mb-4 flex items-center gap-2">
+          <MessageCircle size={20} className="text-[#3182f6]" />
           {t.result_chat_title}
         </h3>
         
@@ -121,7 +121,7 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
           className="flex flex-col gap-4 mb-6 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar scroll-smooth"
         >
           {messages.length === 0 ? (
-            <p className="text-gray-400 text-sm text-center py-4">{t.result_chat_empty}</p>
+            <p className="text-[#8b95a1] text-sm text-center py-4 font-medium">{t.result_chat_empty}</p>
           ) : (
             messages.map((msg, idx) => (
               <motion.div
@@ -132,8 +132,8 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
               >
                 <div className={`max-w-[85%] p-4 rounded-2xl text-sm font-medium leading-relaxed shadow-sm ${
                   msg.role === "user" 
-                    ? "bg-blue-500 text-white rounded-tr-none" 
-                    : "bg-gray-100 text-gray-800 rounded-tl-none"
+                    ? "bg-[#3182f6] text-white rounded-tr-none" 
+                    : "bg-[#f2f4f6] text-[#191f28] rounded-tl-none"
                 }`}>
                   {msg.content}
                 </div>
@@ -142,9 +142,9 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
           )}
           {isAsking && (
             <div className="flex justify-start">
-              <div className="bg-gray-100 p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
-                <Loader2 size={16} className="animate-spin text-gray-400" />
-                <span className="text-xs text-gray-400 font-medium tracking-tight">{t.result_chat_thinking}</span>
+              <div className="bg-[#f2f4f6] p-4 rounded-2xl rounded-tl-none flex items-center gap-2">
+                <Loader2 size={16} className="animate-spin text-[#8b95a1]" />
+                <span className="text-xs text-[#8b95a1] font-medium tracking-tight">{t.result_chat_thinking}</span>
               </div>
             </div>
           )}
@@ -156,7 +156,7 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
             onClick={() => {
               setQuestion(t.result_chat_suggestion1);
             }}
-            className="text-[11px] bg-gray-50 text-gray-600 px-3 py-2 rounded-xl border border-gray-100 font-semibold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all active:scale-95"
+            className="text-[11px] bg-[#f2f4f6] text-[#191f28] px-3 py-2 rounded-xl border border-transparent font-semibold hover:bg-[#3182f6]/5 hover:text-[#3182f6] transition-all active:scale-95 cursor-pointer"
           >
             {t.result_chat_suggestion1}
           </button>
@@ -165,7 +165,7 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
             onClick={() => {
               setQuestion(t.result_chat_suggestion2);
             }}
-            className="text-[11px] bg-gray-50 text-gray-600 px-3 py-2 rounded-xl border border-gray-100 font-semibold hover:bg-blue-50 hover:text-blue-600 hover:border-blue-100 transition-all active:scale-95"
+            className="text-[11px] bg-[#f2f4f6] text-[#191f28] px-3 py-2 rounded-xl border border-transparent font-semibold hover:bg-[#3182f6]/5 hover:text-[#3182f6] transition-all active:scale-95 cursor-pointer"
           >
             {t.result_chat_suggestion2}
           </button>
@@ -178,12 +178,16 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
             disabled={isAsking}
-            className="w-full bg-gray-50 border border-gray-200 rounded-2xl py-4 pl-5 pr-14 text-base font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all focus:bg-white disabled:bg-gray-100 disabled:text-gray-400"
+            className="w-full bg-[#f2f4f6] border border-transparent rounded-2xl py-4 pl-5 pr-14 text-base font-medium focus:outline-none focus:bg-white focus:border-[#3182f6] transition-all text-[#191f28] placeholder-[#8b95a1] disabled:bg-gray-100 disabled:text-gray-400"
           />
           <button
             type="submit"
             disabled={!question.trim() || isAsking}
-            className="absolute right-2 top-1/2 -translate-y-1/2 p-2 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors disabled:text-gray-300 disabled:hover:bg-transparent"
+            className={`absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-xl transition-colors ${
+              !question.trim() || isAsking
+                ? "text-[#8b95a1] cursor-not-allowed"
+                : "text-[#3182f6] hover:bg-[#f2f4f6] cursor-pointer"
+            }`}
           >
             <Send size={24} />
           </button>
@@ -191,13 +195,13 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
       </div>
 
       {result.ingredients.length > 0 && (
-        <div className="bg-white p-6 rounded-3xl shadow-sm border border-gray-100 flex flex-col items-center">
-          <h3 className="text-lg font-bold text-gray-900 mb-4 text-center">{t.result_ingredients_label}</h3>
+        <div className="bg-white p-6 rounded-[2rem] border border-[#e5e8eb] shadow-sm flex flex-col items-center">
+          <h3 className="text-lg font-bold text-[#191f28] mb-4 text-center">{t.result_ingredients_label}</h3>
           <div className="flex flex-wrap justify-center gap-2">
             {result.ingredients.map((ingredient, idx) => (
               <span
                 key={idx}
-                className="px-4 py-2 bg-gray-50 text-gray-700 rounded-xl text-sm font-medium border border-gray-100"
+                className="px-4 py-2 bg-[#f2f4f6] text-[#191f28] rounded-xl text-sm font-medium border border-transparent"
               >
                 {ingredient}
               </span>
@@ -208,18 +212,18 @@ export function ResultCard({ profile, result, onReset, language }: ResultCardPro
 
       <button
         onClick={onReset}
-        className="w-full bg-gray-900 text-white py-4.5 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 hover:bg-gray-800 transition-all active:scale-[0.98] shadow-md mt-4"
+        className="w-full bg-[#f2f4f6] text-[#191f28] py-4.5 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 hover:bg-[#e5e8eb] transition-all active:scale-[0.98] mt-4 border border-[#e5e8eb] cursor-pointer"
       >
         <RefreshCw size={20} />
         {t.result_reset_btn}
       </button>
 
-      <div className="bg-gray-50 p-5 rounded-2xl border border-gray-100 mt-2">
-        <h4 className="text-xs font-bold text-gray-600 mb-2 flex items-center gap-1.5">
+      <div className="bg-white p-5 rounded-2xl border border-[#e5e8eb] mt-2 shadow-sm">
+        <h4 className="text-xs font-bold text-[#191f28] mb-2 flex items-center gap-1.5">
           <AlertTriangle size={14} />
           {language === 'ko' ? '필수 법적 고지 사항' : 'Essential Legal Disclaimer'}
         </h4>
-        <ul className="text-[11px] text-gray-500 space-y-1.5 list-disc pl-4 leading-relaxed">
+        <ul className="text-[11px] text-[#8b95a1] space-y-1.5 list-disc pl-4 leading-relaxed">
           {language === 'ko' ? (
             <>
               <li>본 서비스는 Gemini AI 모델을 기반으로 하며, 사진 판독 오류나 최신 정보 미반영으로 인해 결과가 100% 정확하지 않을 수 있습니다.</li>

@@ -51,10 +51,18 @@ export function LoadingSpinner({ imageUrl, language }: LoadingSpinnerProps) {
             />
 
             {/* Corner Brackets for a "Scanner" feel */}
-            <div className="absolute top-6 left-6 w-4 h-4 border-t-2 border-l-2 border-blue-400/50 rounded-tl-sm" />
-            <div className="absolute top-6 right-6 w-4 h-4 border-t-2 border-r-2 border-blue-400/50 rounded-tr-sm" />
-            <div className="absolute bottom-6 left-6 w-4 h-4 border-b-2 border-l-2 border-blue-400/50 rounded-bl-sm" />
-            <div className="absolute bottom-6 right-6 w-4 h-4 border-b-2 border-r-2 border-blue-400/50 rounded-br-sm" />
+            <svg className="absolute top-6 left-6 w-4 h-4 text-blue-400/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M16 1 H3a2 2 0 00-2 2v13" strokeLinecap="round" />
+            </svg>
+            <svg className="absolute top-6 right-6 w-4 h-4 text-blue-400/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M0 1 h13a2 2 0 012 2v13" strokeLinecap="round" />
+            </svg>
+            <svg className="absolute bottom-6 left-6 w-4 h-4 text-blue-400/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M16 15 H3a2 2 0 01-2-2V0" strokeLinecap="round" />
+            </svg>
+            <svg className="absolute bottom-6 right-6 w-4 h-4 text-blue-400/50" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M0 15 h13a2 2 0 002-2V0" strokeLinecap="round" />
+            </svg>
           </div>
         </div>
       ) : (

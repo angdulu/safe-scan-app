@@ -84,24 +84,26 @@ export function Scanner({ profile, onResult, onLoading, language }: ScannerProps
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`bg-white p-6 rounded-3xl shadow-sm border-2 transition-all flex flex-col items-center justify-center text-center gap-4 py-12 ${
-          isDragging ? "border-blue-500 bg-blue-50/50 scale-[1.02]" : "border-gray-100"
+        className={`bg-white p-8 rounded-[2rem] border transition-all flex flex-col items-center justify-center text-center gap-4 py-12 ${
+          isDragging 
+            ? "border-[#3182f6] bg-[#f2f8ff] scale-[1.01] shadow-sm" 
+            : "border-[#e5e8eb] hover:border-[#8b95a1]/40 hover:shadow-sm"
         }`}
       >
         <div className={`w-20 h-20 rounded-full flex items-center justify-center mb-2 transition-colors ${
-          isDragging ? "bg-blue-100 text-blue-600" : "bg-blue-50 text-blue-500"
+          isDragging ? "bg-[#3182f6]/10 text-[#3182f6]" : "bg-[#f2f4f6] text-[#8b95a1]"
         }`}>
           <Camera size={40} strokeWidth={1.5} />
         </div>
-        <h2 className="text-2xl font-bold text-gray-900">{t.scanner_title_camera}</h2>
-        <p className="text-gray-500 text-base px-4 font-medium leading-relaxed">
+        <h2 className="text-2xl font-bold text-[#191f28]">{t.scanner_title_camera}</h2>
+        <p className="text-[#8b95a1] text-base px-4 font-medium leading-relaxed">
           {t.scanner_desc_camera}
         </p>
 
         <div className="flex gap-4 mt-4 w-full px-4">
           <button
             onClick={() => fileInputRef.current?.click()}
-            className="flex-1 bg-blue-500 text-white py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 hover:bg-blue-600 transition-all active:scale-[0.98] shadow-md shadow-blue-500/20"
+            className="flex-1 bg-[#3182f6] text-white py-4 rounded-2xl text-lg font-bold flex items-center justify-center gap-2 hover:bg-[#1c73e8] transition-all active:scale-[0.98] shadow-sm shadow-[#3182f6]/10 cursor-pointer"
           >
             <Camera size={24} />
             {t.scanner_btn_camera}
@@ -117,31 +119,31 @@ export function Scanner({ profile, onResult, onLoading, language }: ScannerProps
       </div>
 
       <div className="flex items-center gap-4 px-2">
-        <div className="h-px bg-gray-200 flex-1"></div>
-        <span className="text-gray-400 font-medium text-sm">{t.scanner_divider}</span>
-        <div className="h-px bg-gray-200 flex-1"></div>
+        <div className="h-px bg-[#e5e8eb] flex-1"></div>
+        <span className="text-[#8b95a1] font-medium text-sm">{t.scanner_divider}</span>
+        <div className="h-px bg-[#e5e8eb] flex-1"></div>
       </div>
 
       <div className="space-y-4">
-        <h2 className="text-xl font-bold text-gray-900 px-2">{t.scanner_title_text}</h2>
+        <h2 className="text-xl font-bold text-[#191f28] px-2">{t.scanner_title_text}</h2>
         <form onSubmit={handleTextSubmit} className="relative">
           <input
             type="text"
             placeholder={t.scanner_placeholder_text}
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
-            className="w-full bg-white border border-gray-200 rounded-2xl py-4.5 pl-5 pr-14 text-lg font-medium focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all shadow-sm"
+            className="w-full bg-[#f2f4f6] border border-transparent rounded-2xl py-4.5 pl-5 pr-14 text-base font-medium focus:outline-none focus:bg-white focus:border-[#3182f6] transition-all text-[#191f28] placeholder-[#8b95a1]"
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 text-blue-500 hover:bg-blue-50 rounded-xl transition-colors"
+            className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 text-[#3182f6] hover:bg-[#f2f4f6] rounded-xl transition-colors cursor-pointer"
           >
             <Search size={24} />
           </button>
         </form>
       </div>
 
-      <p className="text-gray-400 text-[10px] text-center mt-4">
+      <p className="text-[#8b95a1] text-[10px] text-center mt-4">
         {t.scanner_privacy}
       </p>
     </motion.div>
