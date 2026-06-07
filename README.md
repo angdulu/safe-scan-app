@@ -8,7 +8,7 @@ Developed with a focus on **utility-first design** and **latency minimization**,
 
 ## 🏗️ System Architecture & Workflow
 
-SafeScan uses a **Hybrid Offline-Cloud Architecture** that prioritizes local search for zero-latency lookups, falling back to Google's Gemini Vision API only when a scanned product is not present in the local database.
+SafeScan uses a **Hybrid Offline-Cloud Architecture** that prioritizes local search for zero-latency lookups, falling back to Google's Gemini Vision API via a **Secure Serverless Proxy (Cloudflare Pages Functions)** when a scanned product is not present in the local database.
 
 ```mermaid
 graph TD
@@ -19,11 +19,12 @@ graph TD
     
     B -- No (Fallback) --> F[Client-Side Image Downscale: fastResize]
     F --> G[JPEG Quality Compression to 0.4, Payload < 100KB]
-    G --> H[Gemini API Call: gemini-1.5-flash]
-    H --> I[Structured JSON Output Verification]
-    I --> E
+    G --> H[POST request to Cloudflare Pages Functions: /api/analyze]
+    H --> I[Secure Server-Side Gemini API call using Secret]
+    I --> J[Structured JSON Output Verification]
+    J --> E
     
-    E --> J[Contextual Q&A Follow-up Session]
+    E --> K[Contextual Q&A Session via /api/chat Proxy]
 ```
 
 ---
@@ -44,19 +45,16 @@ graph TD
 * **Object URL Revocation:** When capturing or uploading images, React generates object URLs using `URL.createObjectURL(file)`. SafeScan implements an active `useEffect` cleanup hook in `src/App.tsx` to revoke these URLs (`URL.revokeObjectURL(url)`) as soon as the image changes or the scan resets.
 * **Leak Prevention:** This optimization prevents the browser from leaking memory by caching garbage-collected image assets during extended scanning sessions.
 
-### 4. Structured AI Outputs & Zero-Hallucination Guardrails
-* **Strict Schema Enforcement:** Leverages the `@google/genai` SDK to force the model to respond strictly in a predefined JSON structure:
-  ```typescript
-  interface AnalysisResult {
-    level: 'SAFE' | 'CAUTION' | 'DANGER';
-    summary: string;
-    details: string;
-    ingredients: string[];
-  }
-  ```
+### 4. Secure Server-Side Proxying (Cloudflare Pages Functions)
+* **API Key Protection:** Implements `/functions/api/analyze.ts` and `/functions/api/chat.ts` to route all Gemini API requests through Cloudflare's serverless backend.
+* **Zero Client-Side Exposure:** Because the API calls are made server-side, the `GEMINI_API_KEY` can remain securely encrypted as a **Secret** on Cloudflare, completely hidden from the user's browser console and network inspectors.
+* **Smart Local Fallback:** The client-side logic detects if a local key is set (useful for direct local development) and automatically switches to direct SDK calls, providing a seamless DX.
+
+### 5. Structured AI Outputs & Zero-Hallucination Guardrails
+* **Strict Schema Enforcement:** Leverages Google's JSON Schema to force the model to respond strictly in a predefined JSON structure matching the frontend's TypeScript interfaces.
 * **The Grounding Protocol:** The system prompt forces the model to cite authoritative public databases—such as the **World Health Organization (WHO), Food and Drug Administration (FDA), and Ministry of Food and Drug Safety (MFDS)**—in the `details` field to eliminate standard AI hallucinations.
 
-### 5. Rollup Asset Splitting & Caching Strategy
+### 6. Rollup Asset Splitting & Caching Strategy
 * **Manual Chunking (`vite.config.ts`):** Configures Rollup to split the monolithic bundler output into separate, cacheable vendor files:
   * `index.js` (Core Application Logic — ~50 KB)
   * `genai.js` (Google Gen AI SDK — ~284 KB)
@@ -70,6 +68,10 @@ graph TD
 
 ```
 safe-scan-app/
+├── functions/
+│   └── api/
+│       ├── analyze.ts             # Serverless backend proxy for ingredient analysis
+│       └── chat.ts                # Serverless backend proxy for follow-up chat
 ├── src/
 │   ├── components/
 │   │   ├── ProfileSetup.tsx       # User chronic conditions setup
@@ -77,7 +79,7 @@ safe-scan-app/
 │   │   ├── ResultCard.tsx         # Safety report card & follow-up chat
 │   │   └── LoadingSpinner.tsx     # Animated camera scanning feedback
 │   ├── services/
-│   │   ├── analyzer.ts            # Hashing engine, fastResize, & Gemini API client
+│   │   ├── analyzer.ts            # Hashing engine, fastResize, & backend proxy router
 │   │   └── localDb.ts             # Local offline database dictionary
 │   ├── App.tsx                    # Main app state & memory lifecycle management
 │   ├── main.tsx                   # React root entry point

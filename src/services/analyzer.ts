@@ -175,10 +175,26 @@ export async function analyzeProduct(
   }
 
   // 2. Fall back to the Gemini API call if no local match is found
-  const parts: any[] = [];
-  const langText = language === 'ko' ? 'Korean' : 'English';
+  let base64Image: string | undefined = undefined;
+  let mimeType: string | undefined = undefined;
 
-  const promptText = `
+  if (imageFile) {
+    try {
+      base64Image = await fastResize(imageFile);
+      mimeType = "image/jpeg";
+    } catch (error) {
+      console.error("Resize failed, using original", error);
+      const original = await fileToBase64(imageFile);
+      base64Image = original.split(",")[1];
+      mimeType = imageFile.type;
+    }
+  }
+
+  // If local API key is set, use it directly (useful for direct local testing)
+  if (apiKey) {
+    const parts: any[] = [];
+    const langText = language === 'ko' ? 'Korean' : 'English';
+    const promptText = `
 당신은 세계 최고의 보건/의학 전문 AI입니다.
 사용자의 건강 상태는 다음과 같습니다: [${profile.conditions.join(", ")}].
 
@@ -194,47 +210,62 @@ export async function analyzeProduct(
 제품 정보: ${productText ? productText : "첨부된 이미지 참조"}
 `;
 
-  parts.push({ text: promptText });
-
-  if (imageFile) {
-    try {
-      const base64Data = await fastResize(imageFile);
+    parts.push({ text: promptText });
+    if (base64Image && mimeType) {
       parts.push({
         inlineData: {
-          data: base64Data,
-          mimeType: "image/jpeg",
+          data: base64Image,
+          mimeType,
         },
       });
-    } catch (error) {
-      console.error("Resize failed, using original", error);
-      const original = await fileToBase64(imageFile);
-      parts.push({ inlineData: { data: original.split(",")[1], mimeType: imageFile.type } });
+    }
+
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: { parts },
+      config: {
+        responseMimeType: "application/json",
+        responseSchema: {
+          type: Type.OBJECT,
+          properties: {
+            level: { type: Type.STRING },
+            summary: { type: Type.STRING },
+            details: { type: Type.STRING },
+            ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
+          },
+          required: ["level", "summary", "details", "ingredients"],
+        },
+      },
+    });
+
+    try {
+      return JSON.parse(response.text || "{}") as AnalysisResult;
+    } catch (e) {
+      throw new Error(language === 'ko' ? "분석 실패" : "Analysis failed");
     }
   }
 
-  const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash", // 가장 대중적이고 안정적인 속도를 가진 모델
-    contents: { parts },
-    config: {
-      responseMimeType: "application/json",
-      responseSchema: {
-        type: Type.OBJECT,
-        properties: {
-          level: { type: Type.STRING },
-          summary: { type: Type.STRING },
-          details: { type: Type.STRING },
-          ingredients: { type: Type.ARRAY, items: { type: Type.STRING } },
-        },
-        required: ["level", "summary", "details", "ingredients"],
-      },
+  // Otherwise, use the secure Cloudflare Pages Function Proxy
+  const res = await fetch("/api/analyze", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
     },
+    body: JSON.stringify({
+      profile,
+      image: base64Image,
+      mimeType,
+      productText,
+      language,
+    }),
   });
 
-  try {
-    return JSON.parse(response.text || "{}") as AnalysisResult;
-  } catch (e) {
-    throw new Error(language === 'ko' ? "분석 실패" : "Analysis failed");
+  if (!res.ok) {
+    const err = await res.json() as any;
+    throw new Error(err.error || (language === 'ko' ? "분석 실패" : "Analysis failed"));
   }
+
+  return await res.json() as AnalysisResult;
 }
 
 export async function askFollowUpQuestion(
@@ -244,12 +275,14 @@ export async function askFollowUpQuestion(
   language: Language = 'ko',
   history: { role: string; content: string }[] = []
 ): Promise<string> {
-  const langText = language === 'ko' ? 'Korean' : 'English';
-  const historyText = history
-    .map((m) => `${m.role === "user" ? (language === 'ko' ? "질문" : "Question") : (language === 'ko' ? "답변" : "Answer")}: ${m.content}`)
-    .join("\n");
+  // If local API key is set, use it directly
+  if (apiKey) {
+    const langText = language === 'ko' ? 'Korean' : 'English';
+    const historyText = history
+      .map((m) => `${m.role === "user" ? (language === 'ko' ? "질문" : "Question") : (language === 'ko' ? "답변" : "Answer")}: ${m.content}`)
+      .join("\n");
 
-  const prompt = `
+    const prompt = `
 사용자 상태: ${profile.conditions.join(", ")}
 제품 분석 결과: ${result.summary} (${result.level})
 상세 내용: ${result.details}
@@ -263,11 +296,35 @@ ${historyText}
 전문적인 정보나 수치 언급 시 식약처, 세계보건기구(WHO) 등 공신력 있는 출처를 함께 제시하여 신뢰도를 높여주세요.
 `;
 
-  const response = await ai.models.generateContent({
-    model: "gemini-1.5-flash",
-    contents: prompt,
+    const response = await ai.models.generateContent({
+      model: "gemini-1.5-flash",
+      contents: prompt,
+    });
+    return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
+  }
+
+  // Otherwise, use the secure Cloudflare Pages Function Proxy
+  const res = await fetch("/api/chat", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      profile,
+      result,
+      question,
+      language,
+      history,
+    }),
   });
-  return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
+
+  if (!res.ok) {
+    const err = await res.json() as any;
+    throw new Error(err.error || (language === 'ko' ? "답변 실패" : "Failed to answer"));
+  }
+
+  const data = await res.json() as { text: string };
+  return data.text;
 }
 
 function fileToBase64(file: File): Promise<string> {
