@@ -221,7 +221,7 @@ export async function analyzeProduct(
     }
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: { parts },
       config: {
         responseMimeType: "application/json",
@@ -297,7 +297,7 @@ ${historyText}
 `;
 
     const response = await ai.models.generateContent({
-      model: "gemini-3.5-flash",
+      model: "gemini-3.1-flash-lite",
       contents: prompt,
     });
     return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
