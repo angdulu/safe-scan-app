@@ -213,7 +213,7 @@ export async function analyzeProduct(
   }
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-lite-latest", // 가장 빠른 응답 속도를 가진 모델
+    model: "gemini-1.5-flash", // 가장 대중적이고 안정적인 속도를 가진 모델
     contents: { parts },
     config: {
       responseMimeType: "application/json",
@@ -264,7 +264,7 @@ ${historyText}
 `;
 
   const response = await ai.models.generateContent({
-    model: "gemini-flash-lite-latest",
+    model: "gemini-1.5-flash",
     contents: prompt,
   });
   return response.text || (language === 'ko' ? "답변 실패" : "Failed to answer");
