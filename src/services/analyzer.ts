@@ -1,9 +1,11 @@
 import { GoogleGenAI, Type } from "@google/genai";
-import { AnalysisResult, UserProfile } from "../types";
+import { AnalysisResult, UserProfile, RiskLevel } from "../types";
 
 import { Language } from "../translations";
+import { PRODUCTS, INGREDIENT_HAZARDS, CONDITION_MAP } from "./localDb";
 
-const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+const apiKey = (typeof process !== "undefined" ? process.env?.GEMINI_API_KEY : "") || "";
+const ai = new GoogleGenAI({ apiKey });
 
 // 이미지를 서버로 보내기 전, 아주 빠르게 크기를 줄여서 전송 속도를 극대화합니다.
 async function fastResize(file: File): Promise<string> {
@@ -51,6 +53,128 @@ export async function analyzeProduct(
   productText?: string,
   language: Language = 'ko'
 ): Promise<AnalysisResult> {
+  // 1. Perform offline local search first if productText is provided
+  if (productText) {
+    const textToMatch = productText.trim().toLowerCase();
+
+    // Try to find a product in the local database that matches the name
+    const matchedProduct = PRODUCTS.find((p) =>
+      p.names.some((name) => {
+        const n = name.toLowerCase();
+        return textToMatch.includes(n) || n.includes(textToMatch);
+      })
+    );
+
+    // Identify hazards and detect ingredients
+    const detectedIngredients: string[] = [];
+    const matchedHazards: {
+      ingredient: string;
+      level: 'SAFE' | 'CAUTION' | 'DANGER';
+      warning: { summary: string; details: string };
+    }[] = [];
+
+    for (const ingredientHazard of INGREDIENT_HAZARDS) {
+      const isNameMatched = ingredientHazard.names.some((alias) => {
+        const a = alias.toLowerCase();
+        if (textToMatch.includes(a)) return true;
+        if (
+          matchedProduct &&
+          matchedProduct.ingredients.some((ing) => {
+            const i = ing.toLowerCase();
+            return i.includes(a) || a.includes(i);
+          })
+        ) {
+          return true;
+        }
+        return false;
+      });
+
+      if (isNameMatched) {
+        // Resolve a display name for the ingredient in the current language
+        const displayName =
+          language === "ko"
+            ? ingredientHazard.names.find((n) => /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(n)) ||
+              ingredientHazard.names[0]
+            : ingredientHazard.names.find((n) => !/[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(n)) ||
+              ingredientHazard.names[0];
+
+        if (!detectedIngredients.includes(displayName)) {
+          detectedIngredients.push(displayName);
+        }
+
+        for (const hazard of ingredientHazard.hazards) {
+          const matchesUserCondition = profile.conditions.some((userCond) => {
+            const synonyms = CONDITION_MAP[hazard.condition] || [];
+            const normalizedUserCond = userCond.toLowerCase().trim();
+            return synonyms.some((syn) => {
+              const s = syn.toLowerCase();
+              return normalizedUserCond.includes(s) || s.includes(normalizedUserCond);
+            });
+          });
+
+          if (matchesUserCondition) {
+            matchedHazards.push({
+              ingredient: displayName,
+              level: hazard.level,
+              warning: hazard.warnings[language],
+            });
+          }
+        }
+      }
+    }
+
+    // A local match is found if we matched a product, or if we detected any hazardous ingredients in the text
+    const hasLocalMatch = !!matchedProduct || detectedIngredients.length > 0;
+
+    if (hasLocalMatch) {
+      // Determine overall risk level based on hazards matched against user conditions
+      let finalLevel: RiskLevel = 'SAFE';
+      if (matchedHazards.some((h) => h.level === 'DANGER')) {
+        finalLevel = 'DANGER';
+      } else if (matchedHazards.some((h) => h.level === 'CAUTION')) {
+        finalLevel = 'CAUTION';
+      }
+
+      // Generate summary and details in the appropriate language
+      let summary = "";
+      let details = "";
+
+      if (matchedHazards.length > 0) {
+        summary = matchedHazards.map((h) => h.warning.summary).join(" / ");
+        details = matchedHazards
+          .map((h) => `${h.ingredient}: ${h.warning.details}`)
+          .join("\n\n");
+      } else {
+        if (language === "ko") {
+          summary = "안전: 사용자의 건강 상태와 충돌하는 성분이 발견되지 않았습니다.";
+          details = "본 제품의 성분을 분석한 결과, 등록하신 건강 상태에 저해되는 유해 물질이 검출되지 않았습니다. 안심하고 사용하셔도 좋습니다.";
+        } else {
+          summary = "Safe: No ingredients matching your health conditions were detected.";
+          details = "Analysis of this product shows no hazardous ingredients that conflict with your registered health profile. You can use it safely.";
+        }
+      }
+
+      // Prepare list of ingredients
+      let ingredientsList: string[] = [];
+      if (matchedProduct) {
+        ingredientsList = matchedProduct.ingredients.filter((ing) => {
+          const hasKorean = /[ㄱ-ㅎ|ㅏ-ㅣ|가-힣]/.test(ing);
+          return language === "ko" ? hasKorean : !hasKorean;
+        });
+      } else {
+        ingredientsList = detectedIngredients;
+      }
+
+      return {
+        level: finalLevel,
+        summary,
+        details,
+        ingredients: ingredientsList,
+      };
+    }
+  }
+
+  // 2. Fall back to the Gemini API call if no local match is found
   const parts: any[] = [];
   const langText = language === 'ko' ? 'Korean' : 'English';
 

@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { UserProfile, AnalysisResult } from './types';
 import { ProfileSetup } from './components/ProfileSetup';
 import { Scanner } from './components/Scanner';
@@ -13,6 +13,16 @@ export default function App() {
   const [result, setResult] = useState<AnalysisResult | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const [previewUrl, setPreviewUrl] = useState<string | null>(null);
+
+  // Clean up Object URL when previewUrl changes to prevent memory leaks
+  useEffect(() => {
+    const url = previewUrl;
+    return () => {
+      if (url) {
+        URL.revokeObjectURL(url);
+      }
+    };
+  }, [previewUrl]);
 
   const t = translations[language];
 
