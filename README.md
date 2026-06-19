@@ -39,7 +39,7 @@ graph TD
 ### 2. Client-Side "Diet" Latency Pipeline
 * **Canvas-Based Downscaling (`fastResize`):** Resizes raw mobile camera images (typically 3–8 MB) to a maximum dimension of `512px` before upload. This preserves text legibility for ingredient lists while stripping redundant pixels.
 * **JPEG Compression Tuning:** Compresses image quality to `0.4` before base64 transmission, reducing payload size to **under 100 KB** (a **98% reduction** in network payload).
-* **Model Selection & Configuration:** Integrates `gemini-3.1-flash-lite`, reducing overall end-to-end vision latency from **30 seconds to under 2 seconds** (over **93% latency reduction** and 6x cost savings). Supports dynamic model swapping via the `GEMINI_API_MODEL` environment variable in the Cloudflare Pages Function dashboard or `.env` files.
+* **Model Selection & Configuration:** Integrates `gemini-3.1-flash-lite`, reducing end-to-end latency from **~30 seconds to ~2 seconds for text queries and ~5 seconds for image scans** (an **80%+ latency reduction**, plus ~6x cost savings from the lighter model). Supports dynamic model swapping via the `GEMINI_API_MODEL` environment variable in the Cloudflare Pages Function dashboard or `.env` files.
 
 ### 3. Resource Lifecycle & Memory Guardrails
 * **Object URL Revocation:** When capturing or uploading images, React generates object URLs using `URL.createObjectURL(file)`. SafeScan implements an active `useEffect` cleanup hook in `src/App.tsx` to revoke these URLs (`URL.revokeObjectURL(url)`) as soon as the image changes or the scan resets.
